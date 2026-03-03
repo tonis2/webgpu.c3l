@@ -77,9 +77,17 @@ fn String resolve_constant_value(String value) {
     switch (value) {
         case "uint32_max": return "(~0u)";
         case "uint64_max": return "(~0ul)";
-        case "usize_max":  return "(~0uz)";
+        case "usize_max":  return "(usz)(~0ul)";
         case "nan":        return "float.nan";
         default:           return value;
+    }
+}
+
+// Rename struct/arg field names that collide with C3 reserved keywords
+fn String safe_field_name(String name) {
+    switch (name) {
+        case "module": return "shader_module";
+        default:       return name;
     }
 }
 
@@ -350,7 +358,7 @@ fn void generate_types(
     f.write("// Callbacks\n")!!;
     foreach (cb : *callbacks) {
         String pascal = snake_to_pascal(cb.name, alloc);
-        DString line = dstring::join(alloc, {"def WGPU", pascal, "Callback = fn void("}, "");
+        DString line = dstring::join(alloc, {"alias WGPU", pascal, "Callback = fn void("}, "");
         foreach (usz i, arg : cb.args) {
             String arg_type = resolve_type(arg, type_map, alloc);
             if (i > 0) line.append_string(", ");
@@ -364,7 +372,7 @@ fn void generate_types(
             String info_name = dstring::join(alloc, {pascal, "CallbackInfo"}, "").copy_str(alloc);
             f.write(dstring::join(alloc, {
                 "struct ", info_name, " {\n",
-                "    ChainMeta* next_in_chain;\n",
+                "    void* next_in_chain;\n",
                 "    CallbackMode mode;\n",
                 "    WGPU", pascal, "Callback callback;\n",
                 "    void* userdata1;\n",
@@ -446,18 +454,23 @@ fn void generate_types(
         String pascal = snake_to_pascal(s.name, alloc);
         DString block = dstring::join(alloc, {"struct ", pascal, " {\n"}, "");
         foreach (m : s.members) {
+            String field_name = safe_field_name(m.name);
             if (m.is_array) {
                 String elem_type = resolve_inner_type(m.inner_type, type_map, alloc);
                 block.append_string(dstring::join(alloc, {
-                    "    usz ", m.name, "_count;\n",
-                    "    ", elem_type, "* ", m.name, ";\n"
+                    "    usz ", field_name, "_count;\n",
+                    "    ", elem_type, "* ", field_name, ";\n"
                 }, "").str_view());
             } else {
                 String c3_type = resolve_type(m, type_map, alloc);
                 block.append_string(dstring::join(alloc, {
-                    "    ", c3_type, " ", m.name, ";\n"
+                    "    ", c3_type, " ", field_name, ";\n"
                 }, "").str_view());
             }
+        }
+        // C3 does not allow zero-sized structs; add a padding byte for empty structs
+        if (s.members.len() == 0) {
+            block.append_string("    char _pad;\n");
         }
         block.append_string("}\n\n");
         f.write(block.str_view())!!;

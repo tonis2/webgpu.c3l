@@ -34,84 +34,84 @@ const WGPU_LIMIT_U32_UNDEFINED = (~0u);
 const WGPU_LIMIT_U64_UNDEFINED = (~0ul);
 const WGPU_MIP_LEVEL_COUNT_UNDEFINED = (~0u);
 const WGPU_QUERY_SET_INDEX_UNDEFINED = (~0u);
-const WGPU_STRLEN = (~0uz);
-const WGPU_WHOLE_MAP_SIZE = (~0uz);
+const WGPU_STRLEN = (usz)(~0ul);
+const WGPU_WHOLE_MAP_SIZE = (usz)(~0ul);
 const WGPU_WHOLE_SIZE = (~0ul);
 
 // Callbacks
-def WGPUBufferMapCallback = fn void(MapAsyncStatus status, char* message);
+alias WGPUBufferMapCallback = fn void(MapAsyncStatus status, char* message);
 struct BufferMapCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUBufferMapCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUCompilationInfoCallback = fn void(CompilationInfoRequestStatus status, CompilationInfo* compilation_info);
+alias WGPUCompilationInfoCallback = fn void(CompilationInfoRequestStatus status, CompilationInfo* compilation_info);
 struct CompilationInfoCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUCompilationInfoCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUCreateComputePipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, ComputePipeline pipeline, char* message);
+alias WGPUCreateComputePipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, ComputePipeline pipeline, char* message);
 struct CreateComputePipelineAsyncCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUCreateComputePipelineAsyncCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUCreateRenderPipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, RenderPipeline pipeline, char* message);
+alias WGPUCreateRenderPipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, RenderPipeline pipeline, char* message);
 struct CreateRenderPipelineAsyncCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUCreateRenderPipelineAsyncCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUDeviceLostCallback = fn void(Device* device, DeviceLostReason reason, char* message);
+alias WGPUDeviceLostCallback = fn void(Device* device, DeviceLostReason reason, char* message);
 struct DeviceLostCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUDeviceLostCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUPopErrorScopeCallback = fn void(PopErrorScopeStatus status, ErrorType type, char* message);
+alias WGPUPopErrorScopeCallback = fn void(PopErrorScopeStatus status, ErrorType type, char* message);
 struct PopErrorScopeCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUPopErrorScopeCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUQueueWorkDoneCallback = fn void(QueueWorkDoneStatus status, char* message);
+alias WGPUQueueWorkDoneCallback = fn void(QueueWorkDoneStatus status, char* message);
 struct QueueWorkDoneCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPUQueueWorkDoneCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPURequestAdapterCallback = fn void(RequestAdapterStatus status, Adapter adapter, char* message);
+alias WGPURequestAdapterCallback = fn void(RequestAdapterStatus status, Adapter adapter, char* message);
 struct RequestAdapterCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPURequestAdapterCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPURequestDeviceCallback = fn void(RequestDeviceStatus status, Device device, char* message);
+alias WGPURequestDeviceCallback = fn void(RequestDeviceStatus status, Device device, char* message);
 struct RequestDeviceCallbackInfo {
-    ChainMeta* next_in_chain;
+    void* next_in_chain;
     CallbackMode mode;
     WGPURequestDeviceCallback callback;
     void* userdata1;
     void* userdata2;
 }
-def WGPUUncapturedErrorCallback = fn void(Device* device, ErrorType type, char* message);
+alias WGPUUncapturedErrorCallback = fn void(Device* device, ErrorType type, char* message);
 
 // Enums
 typedef AdapterType = inline uint;
@@ -786,7 +786,7 @@ struct ComputePipelineDescriptor {
 }
 
 struct ComputeState {
-    ShaderModule module;
+    ShaderModule shader_module;
     char* entry_point;
     usz constants_count;
     ConstantEntry* constants;
@@ -831,10 +831,11 @@ struct ExternalTextureBindingEntry {
 }
 
 struct ExternalTextureBindingLayout {
+    char _pad;
 }
 
 struct FragmentState {
-    ShaderModule module;
+    ShaderModule shader_module;
     char* entry_point;
     usz constants_count;
     ConstantEntry* constants;
@@ -1205,7 +1206,7 @@ struct VertexBufferLayout {
 }
 
 struct VertexState {
-    ShaderModule module;
+    ShaderModule shader_module;
     char* entry_point;
     usz constants_count;
     ConstantEntry* constants;
