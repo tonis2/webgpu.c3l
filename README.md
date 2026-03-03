@@ -30,8 +30,7 @@ This detects your OS and architecture and places the library in `./libs/wgpu-nat
 ### 2. Build and run
 
 ```bash
-c3c build cube
-./build/cube
+c3c run cube
 ```
 
 Press `Q` or `Escape` to exit.
