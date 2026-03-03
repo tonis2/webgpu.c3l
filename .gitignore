@@ -1,5 +1,9 @@
 # Prerequisites
 *.d
+webgpu.json
+.claude
+
+build
 
 # Object files
 *.o

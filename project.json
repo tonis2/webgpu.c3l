@@ -1,0 +1,16 @@
+{
+	"langrev": "1",
+	"warnings": ["no-unused"],
+	"version": "0.1.0",
+	"targets": {
+		"build": {
+			"type": "executable",
+			"sources": ["./parser/*"]
+		},
+		"zip": {
+			"type": "prepare",
+			"exec": ["zip -r webgpu.c3l ./lib manifest.json"]
+		}
+	},
+	"output": "./build"
+}
