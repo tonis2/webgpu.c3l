@@ -4,15 +4,6 @@ WebGPU bindings for the [C3 programming language](https://c3-lang.org), generate
 
 The bindings wrap [wgpu-native](https://github.com/gfx-rs/wgpu-native) and work on Linux, macOS, and Windows.
 
-## Repository layout
-
-```
-lib/          Generated C3 bindings (webgpu.c3, commands.c3) + hand-written helpers (buffer.c3)
-parser/       Code generator — reads assets/webgpu.json and writes lib/
-examples/     Example programs
-assets/       Downloaded webgpu.json spec (created by build.sh)
-libs/         Runtime libraries (created by install.sh)
-```
 
 ## Building the bindings
 
