@@ -1,2 +1,69 @@
 # webgpu.c3l
-WebGPU bindings for C3
+
+WebGPU bindings for the [C3 programming language](https://c3-lang.org), generated from the official [webgpu-native](https://github.com/webgpu-native/webgpu-headers) JSON spec.
+
+The bindings wrap [wgpu-native](https://github.com/gfx-rs/wgpu-native) and work on Linux, macOS, and Windows.
+
+## Repository layout
+
+```
+lib/          Generated C3 bindings (webgpu.c3, commands.c3) + hand-written helpers (buffer.c3)
+parser/       Code generator — reads assets/webgpu.json and writes lib/
+examples/     Example programs
+assets/       Downloaded webgpu.json spec (created by build.sh)
+libs/         Runtime libraries (created by install.sh)
+```
+
+## Building the bindings
+
+The bindings in `lib/` are already generated and committed. You only need to rebuild them if you want to update to a newer spec version.
+
+```bash
+./build.sh
+```
+
+This downloads the latest `webgpu.json` spec and regenerates `lib/webgpu.c3` and `lib/commands.c3`.
+
+## Running the cube example
+
+### 1. Install wgpu-native
+
+Download the native library for your platform:
+
+```bash
+./install.sh
+```
+
+This detects your OS and architecture and places the library in `./libs/wgpu-native/`.
+
+### 2. Install the c3w window library
+
+The example uses [c3w](https://github.com/tonis2/c3w) for window creation. Copy or symlink `window.c3l` into `./libs/`:
+
+```
+libs/window.c3l
+```
+
+### 3. Build and run
+
+```bash
+c3c build cube
+./build/cube
+```
+
+Press `Q` or `Escape` to exit.
+
+## Using the bindings in your own project
+
+Add this library as a dependency in your `project.json`:
+
+```json
+"dependencies": ["wgpu"],
+"dependency-search-paths": ["path/to/webgpu.c3l/.."]
+```
+
+Then import it:
+
+```c3
+import wgpu;
+```

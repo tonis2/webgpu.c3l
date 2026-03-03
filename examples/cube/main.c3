@@ -126,39 +126,66 @@ fn void main() {
 
     // --- Surface ---
     wgpu::Surface surface;
-    $if env::LINUX:
-        switch (window.src.backend) {
-            case c3w::BackendType.WAYLAND:
-                WaylandWindow* wl = (WaylandWindow*)window.src.backend_data;
-                SurfaceSourceWaylandSurface wl_src = {
-                    .chain_next = null,
-                    .s_type     = wgpu::S_TYPE_SURFACE_SOURCE_WAYLAND_SURFACE,
-                    .display    = wl.display,
-                    .surface    = wl.surface,
-                };
-                SurfaceDescriptor surf_desc = {
-                    .next_in_chain = &wl_src,
-                    .label         = wgpu::sv_empty(),
-                };
-                surface = wgpu::instanceCreateSurface(instance, &surf_desc);
-            case c3w::BackendType.X11:
-                X11Window* x11 = (X11Window*)window.src.backend_data;
-                SurfaceSourceXCBWindow xcb_src = {
-                    .chain_next  = null,
-                    .s_type      = wgpu::S_TYPE_SURFACE_SOURCE_XCB_WINDOW,
-                    .connection  = x11.connection,
-                    .window      = (uint)(uptr)x11.window,
-                };
-                SurfaceDescriptor surf_desc = {
-                    .next_in_chain = &xcb_src,
-                    .label         = wgpu::sv_empty(),
-                };
-                surface = wgpu::instanceCreateSurface(instance, &surf_desc);
-            default:
-                io::printfn("Unsupported display backend");
-                return;
-        }
-    $endif
+    $switch (env::OS_TYPE):
+        $case LINUX:
+            switch (window.src.backend) {
+                case c3w::BackendType.WAYLAND:
+                    WaylandWindow* wl = (WaylandWindow*)window.src.backend_data;
+                    SurfaceSourceWaylandSurface wl_src = {
+                        .chain_next = null,
+                        .s_type     = wgpu::S_TYPE_SURFACE_SOURCE_WAYLAND_SURFACE,
+                        .display    = wl.display,
+                        .surface    = wl.surface,
+                    };
+                    SurfaceDescriptor surf_desc = {
+                        .next_in_chain = &wl_src,
+                        .label         = wgpu::sv_empty(),
+                    };
+                    surface = wgpu::instanceCreateSurface(instance, &surf_desc);
+                case c3w::BackendType.X11:
+                    X11Window* x11 = (X11Window*)window.src.backend_data;
+                    SurfaceSourceXCBWindow xcb_src = {
+                        .chain_next  = null,
+                        .s_type      = wgpu::S_TYPE_SURFACE_SOURCE_XCB_WINDOW,
+                        .connection  = x11.connection,
+                        .window      = (uint)(uptr)x11.window,
+                    };
+                    SurfaceDescriptor surf_desc = {
+                        .next_in_chain = &xcb_src,
+                        .label         = wgpu::sv_empty(),
+                    };
+                    surface = wgpu::instanceCreateSurface(instance, &surf_desc);
+                default:
+                    io::printfn("Unsupported display backend");
+                    return;
+            }
+        $case MACOS:
+            SurfaceSourceMetalLayer metal_src = {
+                .chain_next = null,
+                .s_type     = wgpu::S_TYPE_SURFACE_SOURCE_METAL_LAYER,
+                .layer      = (void*)window.src.layer,
+            };
+            SurfaceDescriptor surf_desc = {
+                .next_in_chain = &metal_src,
+                .label         = wgpu::sv_empty(),
+            };
+            surface = wgpu::instanceCreateSurface(instance, &surf_desc);
+        $case WIN32:
+            SurfaceSourceWindowsHWND hwnd_src = {
+                .chain_next = null,
+                .s_type     = wgpu::S_TYPE_SURFACE_SOURCE_WINDOWS_HWND,
+                .hinstance  = (void*)window.src.instance,
+                .hwnd       = (void*)window.src.hwnd,
+            };
+            SurfaceDescriptor surf_desc = {
+                .next_in_chain = &hwnd_src,
+                .label         = wgpu::sv_empty(),
+            };
+            surface = wgpu::instanceCreateSurface(instance, &surf_desc);
+        $default:
+            io::printfn("Unsupported platform");
+            return;
+    $endswitch
 
     // --- Request Adapter ---
     AdapterResult adapter_result;
