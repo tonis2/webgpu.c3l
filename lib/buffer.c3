@@ -1,4 +1,4 @@
-module webgpu;
+module wgpu;
 
 // GpuBuffer bundles a WebGPU buffer handle with its size.
 // Size is stored alongside the handle because it is needed for uploads,

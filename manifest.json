@@ -1,6 +1,6 @@
 
 {
-  "provides" : "webgpu",
+  "provides" : "wgpu",
   "sources": ["lib/**"],
   "targets" : {
     "macos-x64" : {

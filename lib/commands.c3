@@ -1,4 +1,4 @@
-module webgpu;
+module wgpu;
 
 // Top-level functions
 extern fn Instance createInstance(InstanceDescriptor* descriptor) @cname("wgpuCreateInstance");

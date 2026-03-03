@@ -1,4 +1,4 @@
-module webgpu;
+module wgpu;
 
 struct StringView {
     char* data;

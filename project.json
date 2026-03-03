@@ -9,9 +9,9 @@
 		},
 		"cube": {
 			"type": "executable",
-			"sources": ["examples/cube/main.c3", "lib/**"],
+			"sources": ["examples/cube/main.c3", "lib/*"],
 			"dependencies": ["c3w"],
-			"dependency-search-paths": ["./libs"],
+			"dependency-search-paths": [".", "./libs"],
 			"linked-libraries": ["wgpu_native"],
 			"linker-search-paths": ["./libs/wgpu-native/lib"],
 			"link-args": ["-Wl,-rpath,\\$ORIGIN/../libs/wgpu-native/lib"]
