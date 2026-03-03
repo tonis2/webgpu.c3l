@@ -45,8 +45,10 @@ struct WgpuBitflag {
 }
 
 // A struct type (e.g. buffer_descriptor -> WGPUBufferDescriptor)
+// kind: "standalone" | "extensible" | "extensible_callback_arg" | "extension"
 struct WgpuStruct {
     String  name;
+    String  kind;
     ArgList members;
 }
 

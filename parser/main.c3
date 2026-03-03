@@ -245,6 +245,7 @@ fn void parse_structs(Object* root, StructList* out) {
         if (item.is_null()) continue;
         WgpuStruct s;
         s.name = item.get_string("name") ?? "";
+        s.kind = item.get_string("type") ?? "standalone";
         if (s.name == "") continue;
 
         if (item.has_key("members")) {
@@ -334,6 +335,12 @@ fn void generate_types(
 {
     f.write("module webgpu;\n\n")!!;
 
+    // 0. StringView — matches WGPUStringView { char* data; size_t length }
+    // sv(s) wraps a null-terminated string; (usz)(~0ul) == WGPU_STRLEN signals null-terminated.
+    f.write("struct StringView {\n    char* data;\n    usz   length;\n}\n")!!;
+    f.write("fn StringView sv(char* s) { return { .data = s, .length = (usz)(~0ul) }; }\n")!!;
+    f.write("fn StringView sv_empty()  { return { .data = null, .length = 0 }; }\n\n")!!;
+
     // 1. Object handles
     f.write("// Object handles\n")!!;
     foreach (obj : *objects) {
@@ -363,6 +370,11 @@ fn void generate_types(
             String arg_type = resolve_type(arg, type_map, alloc);
             if (i > 0) line.append_string(", ");
             line.append_string(dstring::join(alloc, {arg_type, " ", arg.name}, "").str_view());
+        }
+        // callback_mode callbacks have implicit userdata1/userdata2 params in the C ABI
+        if (cb.style == "callback_mode") {
+            if (cb.args.len() > 0) line.append_string(", ");
+            line.append_string("void* userdata1, void* userdata2");
         }
         line.append_string(");\n");
         f.write(line.str_view())!!;
@@ -453,6 +465,14 @@ fn void generate_types(
     foreach (s : *structs) {
         String pascal = snake_to_pascal(s.name, alloc);
         DString block = dstring::join(alloc, {"struct ", pascal, " {\n"}, "");
+        // Emit chain header first for extensible / extension structs
+        if (s.kind == "extensible" || s.kind == "extensible_callback_arg") {
+            block.append_string("    void* next_in_chain;\n");
+        } else if (s.kind == "extension") {
+            block.append_string("    void* chain_next;\n");
+            block.append_string("    uint  s_type;\n");
+        }
+
         foreach (m : s.members) {
             String field_name = safe_field_name(m.name);
             if (m.is_array) {
@@ -586,15 +606,15 @@ fn void main(String[] args) {
     type_map.set("int64",  "long");
     type_map.set("float",  "float");
     type_map.set("double", "double");
-    type_map.set("bool",   "bool");
+    type_map.set("bool",   "uint");   // WGPUBool = uint32_t in C ABI
     type_map.set("usize",  "usz");
     type_map.set("c_void", "void");
     type_map.set("float32",                   "float");
     type_map.set("float64_supertype",         "double");
     type_map.set("nullable_float32",          "float");
-    type_map.set("nullable_string",           "char*");
-    type_map.set("out_string",                "char*");
-    type_map.set("string_with_default_empty", "char*");
+    type_map.set("nullable_string",           "StringView");
+    type_map.set("out_string",                "StringView");
+    type_map.set("string_with_default_empty", "StringView");
 
     // Read the WebGPU JSON spec into a string
     DString json_content;

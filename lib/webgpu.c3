@@ -1,5 +1,12 @@
 module webgpu;
 
+struct StringView {
+    char* data;
+    usz   length;
+}
+fn StringView sv(char* s) { return { .data = s, .length = (usz)(~0ul) }; }
+fn StringView sv_empty()  { return { .data = null, .length = 0 }; }
+
 // Object handles
 typedef Adapter = inline void*;
 typedef BindGroup = inline void*;
@@ -39,7 +46,7 @@ const WGPU_WHOLE_MAP_SIZE = (usz)(~0ul);
 const WGPU_WHOLE_SIZE = (~0ul);
 
 // Callbacks
-alias WGPUBufferMapCallback = fn void(MapAsyncStatus status, char* message);
+alias WGPUBufferMapCallback = fn void(MapAsyncStatus status, StringView message, void* userdata1, void* userdata2);
 struct BufferMapCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -47,7 +54,7 @@ struct BufferMapCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUCompilationInfoCallback = fn void(CompilationInfoRequestStatus status, CompilationInfo* compilation_info);
+alias WGPUCompilationInfoCallback = fn void(CompilationInfoRequestStatus status, CompilationInfo* compilation_info, void* userdata1, void* userdata2);
 struct CompilationInfoCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -55,7 +62,7 @@ struct CompilationInfoCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUCreateComputePipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, ComputePipeline pipeline, char* message);
+alias WGPUCreateComputePipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, ComputePipeline pipeline, StringView message, void* userdata1, void* userdata2);
 struct CreateComputePipelineAsyncCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -63,7 +70,7 @@ struct CreateComputePipelineAsyncCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUCreateRenderPipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, RenderPipeline pipeline, char* message);
+alias WGPUCreateRenderPipelineAsyncCallback = fn void(CreatePipelineAsyncStatus status, RenderPipeline pipeline, StringView message, void* userdata1, void* userdata2);
 struct CreateRenderPipelineAsyncCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -71,7 +78,7 @@ struct CreateRenderPipelineAsyncCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUDeviceLostCallback = fn void(Device* device, DeviceLostReason reason, char* message);
+alias WGPUDeviceLostCallback = fn void(Device* device, DeviceLostReason reason, StringView message, void* userdata1, void* userdata2);
 struct DeviceLostCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -79,7 +86,7 @@ struct DeviceLostCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUPopErrorScopeCallback = fn void(PopErrorScopeStatus status, ErrorType type, char* message);
+alias WGPUPopErrorScopeCallback = fn void(PopErrorScopeStatus status, ErrorType type, StringView message, void* userdata1, void* userdata2);
 struct PopErrorScopeCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -87,7 +94,7 @@ struct PopErrorScopeCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUQueueWorkDoneCallback = fn void(QueueWorkDoneStatus status, char* message);
+alias WGPUQueueWorkDoneCallback = fn void(QueueWorkDoneStatus status, StringView message, void* userdata1, void* userdata2);
 struct QueueWorkDoneCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -95,7 +102,7 @@ struct QueueWorkDoneCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPURequestAdapterCallback = fn void(RequestAdapterStatus status, Adapter adapter, char* message);
+alias WGPURequestAdapterCallback = fn void(RequestAdapterStatus status, Adapter adapter, StringView message, void* userdata1, void* userdata2);
 struct RequestAdapterCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -103,7 +110,7 @@ struct RequestAdapterCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPURequestDeviceCallback = fn void(RequestDeviceStatus status, Device device, char* message);
+alias WGPURequestDeviceCallback = fn void(RequestDeviceStatus status, Device device, StringView message, void* userdata1, void* userdata2);
 struct RequestDeviceCallbackInfo {
     void* next_in_chain;
     CallbackMode mode;
@@ -111,7 +118,7 @@ struct RequestDeviceCallbackInfo {
     void* userdata1;
     void* userdata2;
 }
-alias WGPUUncapturedErrorCallback = fn void(Device* device, ErrorType type, char* message);
+alias WGPUUncapturedErrorCallback = fn void(Device* device, ErrorType type, StringView message);
 
 // Enums
 typedef AdapterType = inline uint;
@@ -607,9 +614,10 @@ const VertexFormat VERTEX_FORMAT_UNORM10__10__10__2 = 40;
 const VertexFormat VERTEX_FORMAT_UNORM8X4_B_G_R_A = 41;
 
 typedef VertexStepMode = inline uint;
-const VertexStepMode VERTEX_STEP_MODE_UNDEFINED = 0;
-const VertexStepMode VERTEX_STEP_MODE_VERTEX = 1;
-const VertexStepMode VERTEX_STEP_MODE_INSTANCE = 2;
+const VertexStepMode VERTEX_STEP_MODE_VERTEX_BUFFER_NOT_USED = 0;
+const VertexStepMode VERTEX_STEP_MODE_UNDEFINED = 1;
+const VertexStepMode VERTEX_STEP_MODE_VERTEX = 2;
+const VertexStepMode VERTEX_STEP_MODE_INSTANCE = 3;
 
 typedef WaitStatus = inline uint;
 const WaitStatus WAIT_STATUS_SUCCESS = 1;
@@ -671,10 +679,11 @@ const TextureUsage TEXTURE_USAGE_TRANSIENT_ATTACHMENT = 0x00000020;
 
 // Structs
 struct AdapterInfo {
-    char* vendor;
-    char* architecture;
-    char* device;
-    char* description;
+    void* next_in_chain;
+    StringView vendor;
+    StringView architecture;
+    StringView device;
+    StringView description;
     BackendType backend_type;
     AdapterType adapter_type;
     uint vendor_ID;
@@ -684,13 +693,15 @@ struct AdapterInfo {
 }
 
 struct BindGroupDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     BindGroupLayout layout;
     usz entries_count;
     BindGroupEntry* entries;
 }
 
 struct BindGroupEntry {
+    void* next_in_chain;
     uint binding;
     Buffer buffer;
     ulong offset;
@@ -700,15 +711,16 @@ struct BindGroupEntry {
 }
 
 struct BindGroupLayoutDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     usz entries_count;
     BindGroupLayoutEntry* entries;
 }
 
 struct BindGroupLayoutEntry {
+    void* next_in_chain;
     uint binding;
     ShaderStage visibility;
-    uint binding_array_size;
     BufferBindingLayout buffer;
     SamplerBindingLayout sampler;
     TextureBindingLayout texture;
@@ -727,16 +739,18 @@ struct BlendState {
 }
 
 struct BufferBindingLayout {
+    void* next_in_chain;
     BufferBindingType type;
-    bool has_dynamic_offset;
+    uint has_dynamic_offset;
     ulong min_binding_size;
 }
 
 struct BufferDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     BufferUsage usage;
     ulong size;
-    bool mapped_at_creation;
+    uint mapped_at_creation;
 }
 
 struct Color {
@@ -747,26 +761,31 @@ struct Color {
 }
 
 struct ColorTargetState {
+    void* next_in_chain;
     TextureFormat format;
     BlendState* blend;
     ColorWriteMask write_mask;
 }
 
 struct CommandBufferDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct CommandEncoderDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct CompilationInfo {
+    void* next_in_chain;
     usz messages_count;
     CompilationMessage* messages;
 }
 
 struct CompilationMessage {
-    char* message;
+    void* next_in_chain;
+    StringView message;
     CompilationMessageType type;
     ulong line_num;
     ulong line_pos;
@@ -775,29 +794,34 @@ struct CompilationMessage {
 }
 
 struct ComputePassDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     PassTimestampWrites* timestamp_writes;
 }
 
 struct ComputePipelineDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     PipelineLayout layout;
     ComputeState compute;
 }
 
 struct ComputeState {
+    void* next_in_chain;
     ShaderModule shader_module;
-    char* entry_point;
+    StringView entry_point;
     usz constants_count;
     ConstantEntry* constants;
 }
 
 struct ConstantEntry {
-    char* key;
+    void* next_in_chain;
+    StringView key;
     double value;
 }
 
 struct DepthStencilState {
+    void* next_in_chain;
     TextureFormat format;
     OptionalBool depth_write_enabled;
     CompareFunction depth_compare;
@@ -811,7 +835,8 @@ struct DepthStencilState {
 }
 
 struct DeviceDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     usz required_features_count;
     FeatureName* required_features;
     Limits* required_limits;
@@ -827,16 +852,21 @@ struct Extent3D {
 }
 
 struct ExternalTextureBindingEntry {
+    void* chain_next;
+    uint  s_type;
     ExternalTexture external_texture;
 }
 
 struct ExternalTextureBindingLayout {
+    void* chain_next;
+    uint  s_type;
     char _pad;
 }
 
 struct FragmentState {
+    void* next_in_chain;
     ShaderModule shader_module;
-    char* entry_point;
+    StringView entry_point;
     usz constants_count;
     ConstantEntry* constants;
     usz targets_count;
@@ -849,20 +879,23 @@ struct Future {
 
 struct FutureWaitInfo {
     Future future;
-    bool completed;
+    uint completed;
 }
 
 struct InstanceDescriptor {
+    void* next_in_chain;
     usz required_features_count;
     InstanceFeatureName* required_features;
     InstanceLimits* required_limits;
 }
 
 struct InstanceLimits {
+    void* next_in_chain;
     usz timed_wait_any_max_count;
 }
 
 struct Limits {
+    void* next_in_chain;
     uint max_texture_dimension_1D;
     uint max_texture_dimension_2D;
     uint max_texture_dimension_3D;
@@ -898,9 +931,10 @@ struct Limits {
 }
 
 struct MultisampleState {
+    void* next_in_chain;
     uint count;
     uint mask;
-    bool alpha_to_coverage_enabled;
+    uint alpha_to_coverage_enabled;
 }
 
 struct Origin3D {
@@ -910,51 +944,59 @@ struct Origin3D {
 }
 
 struct PassTimestampWrites {
+    void* next_in_chain;
     QuerySet query_set;
     uint beginning_of_pass_write_index;
     uint end_of_pass_write_index;
 }
 
 struct PipelineLayoutDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     usz bind_group_layouts_count;
     BindGroupLayout* bind_group_layouts;
     uint immediate_size;
 }
 
 struct PrimitiveState {
+    void* next_in_chain;
     PrimitiveTopology topology;
     IndexFormat strip_index_format;
     FrontFace front_face;
     CullMode cull_mode;
-    bool unclipped_depth;
+    uint unclipped_depth;
 }
 
 struct QuerySetDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     QueryType type;
     uint count;
 }
 
 struct QueueDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct RenderBundleDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct RenderBundleEncoderDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     usz color_formats_count;
     TextureFormat* color_formats;
     TextureFormat depth_stencil_format;
     uint sample_count;
-    bool depth_read_only;
-    bool stencil_read_only;
+    uint depth_read_only;
+    uint stencil_read_only;
 }
 
 struct RenderPassColorAttachment {
+    void* next_in_chain;
     TextureView view;
     uint depth_slice;
     TextureView resolve_target;
@@ -964,19 +1006,21 @@ struct RenderPassColorAttachment {
 }
 
 struct RenderPassDepthStencilAttachment {
+    void* next_in_chain;
     TextureView view;
     LoadOp depth_load_op;
     StoreOp depth_store_op;
     float depth_clear_value;
-    bool depth_read_only;
+    uint depth_read_only;
     LoadOp stencil_load_op;
     StoreOp stencil_store_op;
     uint stencil_clear_value;
-    bool stencil_read_only;
+    uint stencil_read_only;
 }
 
 struct RenderPassDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     usz color_attachments_count;
     RenderPassColorAttachment* color_attachments;
     RenderPassDepthStencilAttachment* depth_stencil_attachment;
@@ -985,11 +1029,14 @@ struct RenderPassDescriptor {
 }
 
 struct RenderPassMaxDrawCount {
+    void* chain_next;
+    uint  s_type;
     ulong max_draw_count;
 }
 
 struct RenderPipelineDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     PipelineLayout layout;
     VertexState vertex;
     PrimitiveState primitive;
@@ -999,23 +1046,28 @@ struct RenderPipelineDescriptor {
 }
 
 struct RequestAdapterOptions {
+    void* next_in_chain;
     FeatureLevel feature_level;
     PowerPreference power_preference;
-    bool force_fallback_adapter;
+    uint force_fallback_adapter;
     BackendType backend_type;
     Surface compatible_surface;
 }
 
 struct RequestAdapterWebXROptions {
-    bool xr_compatible;
+    void* chain_next;
+    uint  s_type;
+    uint xr_compatible;
 }
 
 struct SamplerBindingLayout {
+    void* next_in_chain;
     SamplerBindingType type;
 }
 
 struct SamplerDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     AddressMode address_mode_u;
     AddressMode address_mode_v;
     AddressMode address_mode_w;
@@ -1029,16 +1081,21 @@ struct SamplerDescriptor {
 }
 
 struct ShaderModuleDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct ShaderSourceSPIRV {
+    void* chain_next;
+    uint  s_type;
     uint code_size;
     uint* code;
 }
 
 struct ShaderSourceWGSL {
-    char* code;
+    void* chain_next;
+    uint  s_type;
+    StringView code;
 }
 
 struct StencilFaceState {
@@ -1049,6 +1106,7 @@ struct StencilFaceState {
 }
 
 struct StorageTextureBindingLayout {
+    void* next_in_chain;
     StorageTextureAccess access;
     TextureFormat format;
     TextureViewDimension view_dimension;
@@ -1070,6 +1128,7 @@ struct SupportedWGSLLanguageFeatures {
 }
 
 struct SurfaceCapabilities {
+    void* next_in_chain;
     TextureUsage usages;
     usz formats_count;
     TextureFormat* formats;
@@ -1080,11 +1139,14 @@ struct SurfaceCapabilities {
 }
 
 struct SurfaceColorManagement {
+    void* chain_next;
+    uint  s_type;
     PredefinedColorSpace color_space;
     ToneMappingMode tone_mapping_mode;
 }
 
 struct SurfaceConfiguration {
+    void* next_in_chain;
     Device device;
     TextureFormat format;
     TextureUsage usage;
@@ -1097,38 +1159,52 @@ struct SurfaceConfiguration {
 }
 
 struct SurfaceDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
 }
 
 struct SurfaceSourceAndroidNativeWindow {
+    void* chain_next;
+    uint  s_type;
     void* window;
 }
 
 struct SurfaceSourceMetalLayer {
+    void* chain_next;
+    uint  s_type;
     void* layer;
 }
 
 struct SurfaceSourceWaylandSurface {
+    void* chain_next;
+    uint  s_type;
     void* display;
     void* surface;
 }
 
 struct SurfaceSourceWindowsHWND {
+    void* chain_next;
+    uint  s_type;
     void* hinstance;
     void* hwnd;
 }
 
 struct SurfaceSourceXCBWindow {
+    void* chain_next;
+    uint  s_type;
     void* connection;
     uint window;
 }
 
 struct SurfaceSourceXlibWindow {
+    void* chain_next;
+    uint  s_type;
     void* display;
     ulong window;
 }
 
 struct SurfaceTexture {
+    void* next_in_chain;
     Texture texture;
     SurfaceGetCurrentTextureStatus status;
 }
@@ -1152,9 +1228,10 @@ struct TexelCopyTextureInfo {
 }
 
 struct TextureBindingLayout {
+    void* next_in_chain;
     TextureSampleType sample_type;
     TextureViewDimension view_dimension;
-    bool multisampled;
+    uint multisampled;
 }
 
 struct TextureComponentSwizzle {
@@ -1165,11 +1242,14 @@ struct TextureComponentSwizzle {
 }
 
 struct TextureComponentSwizzleDescriptor {
+    void* chain_next;
+    uint  s_type;
     TextureComponentSwizzle swizzle;
 }
 
 struct TextureDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     TextureUsage usage;
     TextureDimension dimension;
     Extent3D size;
@@ -1181,7 +1261,8 @@ struct TextureDescriptor {
 }
 
 struct TextureViewDescriptor {
-    char* label;
+    void* next_in_chain;
+    StringView label;
     TextureFormat format;
     TextureViewDimension dimension;
     uint base_mip_level;
@@ -1206,8 +1287,9 @@ struct VertexBufferLayout {
 }
 
 struct VertexState {
+    void* next_in_chain;
     ShaderModule shader_module;
-    char* entry_point;
+    StringView entry_point;
     usz constants_count;
     ConstantEntry* constants;
     usz buffers_count;

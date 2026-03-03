@@ -7,6 +7,14 @@
 			"type": "executable",
 			"sources": ["./parser/*"]
 		},
+		"cube": {
+			"type": "executable",
+			"sources": ["examples/cube/main.c3", "lib/**"],
+			"dependencies": ["c3w"],
+			"dependency-search-paths": ["./libs"],
+			"linked-libraries": ["wgpu_native"],
+			"linker-search-paths": ["./libs/wgpu-native/lib"]
+		},
 		"zip": {
 			"type": "prepare",
 			"exec": ["zip -r webgpu.c3l ./lib manifest.json"]

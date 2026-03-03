@@ -1,19 +1,19 @@
 
-{ 
+{
   "provides" : "webgpu",
   "sources": ["lib/**"],
   "targets" : {
     "macos-x64" : {
-      "linked-libraries" : []
+      "linked-libraries" : ["wgpu_native"]
     },
     "macos-aarch64" : {
-      "linked-libraries" : []
+      "linked-libraries" : ["wgpu_native"]
     },
     "linux-x64" : {
-      "linked-libraries" : []
+      "linked-libraries" : ["wgpu_native"]
     },
 	  "windows-x64" : {
-      "linked-libraries" : []
+      "linked-libraries" : ["wgpu_native"]
     }
   }
 }
