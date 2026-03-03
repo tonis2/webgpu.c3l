@@ -27,15 +27,7 @@ Download the native library for your platform:
 
 This detects your OS and architecture and places the library in `./libs/wgpu-native/`.
 
-### 2. Install the c3w window library
-
-The example uses [c3w](https://github.com/tonis2/c3w) for window creation. Copy or symlink `window.c3l` into `./libs/`:
-
-```
-libs/window.c3l
-```
-
-### 3. Build and run
+### 2. Build and run
 
 ```bash
 c3c build cube
