@@ -195,3 +195,15 @@ extern fn void textureDestroy(Texture self) @cname("wgpuTextureDestroy");
 // TextureView methods
 extern fn void textureViewSetLabel(TextureView self, StringView label) @cname("wgpuTextureViewSetLabel");
 
+// Release methods — drop handle references, allowing GPU resource cleanup
+extern fn void bindGroupRelease(BindGroup self) @cname("wgpuBindGroupRelease");
+extern fn void bindGroupLayoutRelease(BindGroupLayout self) @cname("wgpuBindGroupLayoutRelease");
+extern fn void pipelineLayoutRelease(PipelineLayout self) @cname("wgpuPipelineLayoutRelease");
+extern fn void renderPipelineRelease(RenderPipeline self) @cname("wgpuRenderPipelineRelease");
+extern fn void shaderModuleRelease(ShaderModule self) @cname("wgpuShaderModuleRelease");
+extern fn void samplerRelease(Sampler self) @cname("wgpuSamplerRelease");
+extern fn void textureViewRelease(TextureView self) @cname("wgpuTextureViewRelease");
+extern fn void commandEncoderRelease(CommandEncoder self) @cname("wgpuCommandEncoderRelease");
+extern fn void commandBufferRelease(CommandBuffer self) @cname("wgpuCommandBufferRelease");
+extern fn void renderPassEncoderRelease(RenderPassEncoder self) @cname("wgpuRenderPassEncoderRelease");
+
