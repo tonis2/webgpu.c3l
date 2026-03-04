@@ -891,6 +891,39 @@ fn void generate_commands(
 				).str_view()
 			)!!;
 		}
+
+		// Every object gets release and add_ref (C ABI convention, not in JSON spec)
+		String c3_prefix = snake_to_camel(obj.name, alloc);
+		f.write(
+			dstring::join(
+				alloc,
+				{
+					"extern fn void ",
+					c3_prefix,
+					"Release(",
+					obj_pascal,
+					" self) @cname(\"wgpu",
+					obj_pascal,
+					"Release\");\n"
+				},
+				""
+			).str_view()
+		)!!;
+		f.write(
+			dstring::join(
+				alloc,
+				{
+					"extern fn void ",
+					c3_prefix,
+					"AddRef(",
+					obj_pascal,
+					" self) @cname(\"wgpu",
+					obj_pascal,
+					"AddRef\");\n"
+				},
+				""
+			).str_view()
+		)!!;
 		f.write("\n")!!;
 	}
 }
