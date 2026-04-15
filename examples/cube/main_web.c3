@@ -274,8 +274,8 @@ fn void init(
 
     // --- Projection & view ---
     float aspect = (float)canvas_width / (float)canvas_height;
-    Mat4 proj = math::matrix4f_perspective((float)math::PI / 4.0f, aspect, 0.1f, 100.0f);
-    Mat4 view_mat = math::MATRIX4F_IDENTITY.translate({0.0f, 0.0f, -4.0f});
+    Mat4 proj = matrix::perspective((float)math::PI / 4.0f, aspect, 0.1f, 100.0f);
+    Mat4 view_mat = matrix::IDENTITY4.translate({0.0f, 0.0f, -4.0f});
 
     // Store everything in global state
     g = {
@@ -296,7 +296,7 @@ fn void init(
 fn void render_frame() @export("render_frame") {
     // Rotate cube, build MVP, transpose for WGSL column-major upload
     g.angle += 0.01f;
-    Mat4 model = math::MATRIX4F_IDENTITY.rotate_y(g.angle);
+    Mat4 model = matrix::IDENTITY4.rotate_y(g.angle);
     Mat4 mvp   = g.proj * g.view * model;
     Mat4 mvp_t = mvp.transpose();
     g.ub.upload(g.queue, &mvp_t, 64);
