@@ -8,6 +8,8 @@
     },
     "wasm32" : {
     },
+    "emscripten" : {
+    },
     "macos-aarch64" : {
       "linked-libraries" : ["wgpu_native"]
     },
