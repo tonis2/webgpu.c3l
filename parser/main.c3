@@ -97,7 +97,7 @@ fn String resolve_constant_value(String value)
 		case "usize_max":
 			return "(usz)(~0ul)";
 		case "nan":
-			return "float.nan";
+			return "float::nan";
 		default:
 			return value;
 	}
@@ -120,6 +120,9 @@ fn String resolve_inner_type(String inner, TypeMap* type_map, Allocator alloc)
 {
 	String? mapped = type_map.get(inner);
 	if (try mapped) return mapped;
+
+  // WebGPU opaque C handles are represented as void* in C3.
+	if (inner.starts_with("c_void_")) return "void";
 
 	if (inner.starts_with("enum.")) return snake_to_pascal(inner[5..], alloc);
 	if (inner.starts_with("struct.")) return snake_to_pascal(inner[7..], alloc);
@@ -545,8 +548,11 @@ fn void generate_types(
 						pascal,
 						" ",
 						const_name,
-						" = ",
+						" = (",
+            pascal,
+            ")(",
 						num_str,
+            ")",
 						";\n"
 					},
 					""
@@ -622,7 +628,9 @@ fn void generate_types(
 						pascal,
 						" ",
 						const_name,
-						" = ",
+						" = (",
+            pascal,
+            ")",
 						val_str,
 						";\n"
 					},
