@@ -4,8 +4,8 @@ import std::io;
 import std::io::file;
 import std::collections::list;
 import std::collections::map;
-import std::encoding::json;
 import std::collections::object;
+import std::encoding::json;
 
 alias TypeMap = HashMap {String, String};
 
@@ -97,7 +97,7 @@ fn String resolve_constant_value(String value)
 		case "usize_max":
 			return "(usz)(~0ul)";
 		case "nan":
-			return "float.nan";
+			return "float::nan";
 		default:
 			return value;
 	}
@@ -120,6 +120,9 @@ fn String resolve_inner_type(String inner, TypeMap* type_map, Allocator alloc)
 {
 	String? mapped = type_map.get(inner);
 	if (try mapped) return mapped;
+
+  // WebGPU opaque C handles are represented as void* in C3.
+	if (inner.starts_with("c_void_")) return "void";
 
 	if (inner.starts_with("enum.")) return snake_to_pascal(inner[5..], alloc);
 	if (inner.starts_with("struct.")) return snake_to_pascal(inner[7..], alloc);
@@ -191,7 +194,7 @@ fn WgpuMethod parse_method(Object* obj)
 	if (obj.has_key("args"))
 	{
 		Object* args_arr = obj.get("args")!!;
-		for (usz k = 0; k < args_arr.get_len(); k++)
+		for (sz k = 0; k < args_arr.get_len(); k++)
 		{
 			Object* a = args_arr.get_at(k);
 			if (!a.is_null()) meth.args.push(parse_arg(a));
@@ -208,7 +211,7 @@ fn void parse_constants(Object* root, ConstantList* out)
 {
 	if (!root.has_key("constants")) return;
 	Object* arr = root.get("constants")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -224,7 +227,7 @@ fn void parse_enums(Object* root, EnumList* out)
 {
 	if (!root.has_key("enums")) return;
 	Object* arr = root.get("enums")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -235,7 +238,7 @@ fn void parse_enums(Object* root, EnumList* out)
 		if (item.has_key("entries"))
 		{
 			Object* entries = item.get("entries")!!;
-			for (usz j = 0; j < entries.get_len(); j++)
+			for (sz j = 0; j < entries.get_len(); j++)
 			{
 				Object* entry = entries.get_at(j);
 				WgpuEntry ve;
@@ -258,7 +261,7 @@ fn void parse_bitflags(Object* root, BitflagList* out)
 {
 	if (!root.has_key("bitflags")) return;
 	Object* arr = root.get("bitflags")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -269,7 +272,7 @@ fn void parse_bitflags(Object* root, BitflagList* out)
 		if (item.has_key("entries"))
 		{
 			Object* entries = item.get("entries")!!;
-			for (usz j = 0; j < entries.get_len(); j++)
+			for (sz j = 0; j < entries.get_len(); j++)
 			{
 				Object* entry = entries.get_at(j);
 				if (entry.is_null()) continue;
@@ -279,7 +282,7 @@ fn void parse_bitflags(Object* root, BitflagList* out)
 				if (entry.has_key("value_combination"))
 				{
 					Object* combo = entry.get("value_combination")!!;
-					for (usz k = 0; k < combo.get_len(); k++)
+					for (sz k = 0; k < combo.get_len(); k++)
 					{
 						Object* cv = combo.get_at(k);
 						if (!cv.is_null() && cv.is_string())
@@ -299,7 +302,7 @@ fn void parse_structs(Object* root, StructList* out)
 {
 	if (!root.has_key("structs")) return;
 	Object* arr = root.get("structs")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -311,7 +314,7 @@ fn void parse_structs(Object* root, StructList* out)
 		if (item.has_key("members"))
 		{
 			Object* members = item.get("members")!!;
-			for (usz j = 0; j < members.get_len(); j++)
+			for (sz j = 0; j < members.get_len(); j++)
 			{
 				Object* m = members.get_at(j);
 				if (!m.is_null()) s.members.push(parse_arg(m));
@@ -325,7 +328,7 @@ fn void parse_objects(Object* root, ObjectList* out)
 {
 	if (!root.has_key("objects")) return;
 	Object* arr = root.get("objects")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -336,7 +339,7 @@ fn void parse_objects(Object* root, ObjectList* out)
 		if (item.has_key("methods"))
 		{
 			Object* methods = item.get("methods")!!;
-			for (usz j = 0; j < methods.get_len(); j++)
+			for (sz j = 0; j < methods.get_len(); j++)
 			{
 				Object* m = methods.get_at(j);
 				if (!m.is_null()) obj.methods.push(parse_method(m));
@@ -350,7 +353,7 @@ fn void parse_functions(Object* root, FunctionList* out)
 {
 	if (!root.has_key("functions")) return;
 	Object* arr = root.get("functions")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -370,7 +373,7 @@ fn void parse_callbacks(Object* root, CallbackList* out)
 {
 	if (!root.has_key("callbacks")) return;
 	Object* arr = root.get("callbacks")!!;
-	for (usz i = 0; i < arr.get_len(); i++)
+	for (sz i = 0; i < arr.get_len(); i++)
 	{
 		Object* item = arr.get_at(i);
 		if (item.is_null()) continue;
@@ -382,7 +385,7 @@ fn void parse_callbacks(Object* root, CallbackList* out)
 		if (item.has_key("args"))
 		{
 			Object* args_arr = item.get("args")!!;
-			for (usz j = 0; j < args_arr.get_len(); j++)
+			for (sz j = 0; j < args_arr.get_len(); j++)
 			{
 				Object* a = args_arr.get_at(j);
 				if (!a.is_null()) cb.args.push(parse_arg(a));
@@ -545,8 +548,11 @@ fn void generate_types(
 						pascal,
 						" ",
 						const_name,
-						" = ",
+						" = (",
+            pascal,
+            ")(",
 						num_str,
+            ")",
 						";\n"
 					},
 					""
@@ -622,7 +628,9 @@ fn void generate_types(
 						pascal,
 						" ",
 						const_name,
-						" = ",
+						" = (",
+            pascal,
+            ")",
 						val_str,
 						";\n"
 					},
@@ -966,9 +974,9 @@ fn void main(String[] args)
 		char[8192] chunk;
 		while (true)
 		{
-			usz? n_res = spec.read(chunk[0..]);
+			sz? n_res = spec.read(chunk[0..]);
 			if (catch n_res) break;
-			usz n = n_res;
+			sz n = n_res;
 			if (n == 0) break;
 			json_content.append_bytes(chunk[0..n - 1]);
 		}
@@ -976,7 +984,8 @@ fn void main(String[] args)
 	}
 
 	// Parse JSON
-	Object* root = json::parse_string(&allocator, json_content.str_view())!!;
+	String json = json_content.str_view();
+  Object* root = json.parse_json(&allocator)!!;
 
 	// Open output files
 	File main_file = io::file::open("lib/webgpu.c3", "wb")!!;
